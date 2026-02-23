@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     SLACK_WEBHOOK_URL: str = ""
     SLACK_BOT_TOKEN: str = ""
     SLACK_CHANNEL: str = ""
-    DB_PATH: str = "yulu_intel.db"
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
 
     model_config = {"env_file": ".env"}
 
