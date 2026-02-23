@@ -70,6 +70,11 @@ class NewsExtractionResponse(BaseModel):
     items: List[NewsDigestItem]
 
 
+class GigWorkerPulseItem(BaseModel):
+    quote: str
+    source_platform: str
+
+
 class CompetitiveAnalysis(BaseModel):
     product_name: str
     market_overview: str
@@ -82,3 +87,4 @@ class CompetitiveAnalysis(BaseModel):
     market_gaps: Optional[List[str]] = None
     urgent_opportunities: Optional[List[str]] = None
     action_plan_90day: Optional[List[MonthlyAction]] = None
+    gig_worker_pulse: Optional[List[GigWorkerPulseItem]] = None

@@ -148,6 +148,14 @@ def format_messages(
         msg4_blocks.append(_section(_truncate("\n".join(plan_lines))))
         msg4_blocks.append(_divider())
 
+    # Gig Worker Pulse
+    if analysis.gig_worker_pulse:
+        pulse_lines = ["*:speaking_head_in_silhouette: Gig Worker Pulse*\n"]
+        for item in analysis.gig_worker_pulse[:3]:
+            pulse_lines.append(f"  :speech_balloon: \"{item.quote}\" — _{item.source_platform}_")
+        msg4_blocks.append(_section(_truncate("\n".join(pulse_lines))))
+        msg4_blocks.append(_divider())
+
     # Key Insights
     insight_lines = ["*:brain: Key Insights*\n"]
     for idx, ins in enumerate(analysis.key_insights, 1):

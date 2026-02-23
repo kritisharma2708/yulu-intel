@@ -1,6 +1,26 @@
 from pydantic_settings import BaseSettings
 
 
+FOCUS_PERSONA = {
+    "segment": "gig workers and daily bike renters",
+    "useCases": [
+        "last-mile delivery",
+        "food delivery",
+        "hyperlocal logistics",
+        "daily commute rentals",
+        "subscription bike rentals",
+    ],
+    "keyConcerns": [
+        "per-km cost",
+        "vehicle availability",
+        "battery reliability",
+        "earnings impact",
+        "subscription plans",
+        "rental affordability",
+    ],
+}
+
+
 class Settings(BaseSettings):
     OPENAI_API_KEY: str
     openai_model: str = "gpt-4o-mini"
