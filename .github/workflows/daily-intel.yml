@@ -1,0 +1,36 @@
+name: Daily Competitive Intel
+
+on:
+  schedule:
+    - cron: "30 4 * * *" # 10:00 AM IST (04:30 UTC) every day
+  workflow_dispatch: # allows manual trigger from GitHub UI
+
+jobs:
+  run-intel:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run competitive intel agent
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PRODUCT_NAME: Yulu
+          DB_PATH: yulu_intel.db
+        run: python run.py
+
+      - name: Upload DB for persistence
+        uses: actions/upload-artifact@v4
+        with:
+          name: yulu-intel-db
+          path: yulu_intel.db
+          retention-days: 90
