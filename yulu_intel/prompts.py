@@ -50,11 +50,13 @@ Provide a complete competitive analysis including:
 8. A 90-day action plan with 3 monthly entries (month as "Month 1"/"Month 2"/"Month 3", title, description, and 3-5 actions each) — each action must reference a specific competitor move as the reason
 9. gig_worker_pulse: 2-3 items capturing what gig workers are actually saying about these services. Extract specific complaints or praise from scraped review content, Reddit, or news quotes. Each item has "quote" (the specific complaint/praise) and "source_platform" (e.g. "Reddit r/india", "Google Play reviews", "Twitter", "news article quote"). If no direct quotes are found in the search data, infer the most likely sentiment from review summaries."""
 
-NEWS_SYSTEM_PROMPT = """You are a news extraction specialist. You extract only genuinely recent news items from web search results.
+NEWS_SYSTEM_PROMPT = """You are a news extraction specialist. You extract only genuinely recent and relevant news items from web search results.
 
 Strict rules:
 - ONLY include news items that have an explicit date within the last 30 days (January 2026 or February 2026).
 - If a news item has no clear, specific date mentioned in the search data, DISCARD it entirely. Do not guess dates.
+- ONLY include news that is DIRECTLY about the specified competitor company — the competitor must be a central subject of the article, not merely mentioned in passing.
+- DISCARD articles about unrelated topics (general tech news, Wikipedia, archiving services, social media drama, etc.) even if the competitor name appears somewhere in the text.
 - For each item, extract the source URL directly from the search data. The URL appears in the search results next to each snippet.
 - If you cannot find a URL for a news item, set url to null.
 - Return between 0 and 8 items. It is perfectly fine to return 0 items if nothing qualifies.
@@ -62,7 +64,9 @@ Strict rules:
 
 NEWS_USER_PROMPT_TEMPLATE = """Extract recent news items for competitor "{competitor_name}" from the following search results.
 
-Only include items with an explicit date in the last 30 days. Discard anything without a clear recent date.
+Only include items that meet BOTH criteria:
+1. Have an explicit date in the last 30 days
+2. Are directly about "{competitor_name}" as a company — the article must be about their business, products, funding, partnerships, or operations. Discard articles where "{competitor_name}" is only tangentially mentioned or the article is about an unrelated topic.
 
 Search results:
 {search_data}
