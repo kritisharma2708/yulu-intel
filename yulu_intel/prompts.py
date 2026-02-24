@@ -90,4 +90,4 @@ For each qualifying news item, return:
 - date: the Published date from the search results (e.g. "January 15, 2026" or "Feb 3, 2026")
 - type: one of launch/funding/partnership/controversy/growth
 
-If no items pass all 3 checks, return an empty list. Do not force-include weak matches.
+If no items pass all 3 checks, return an empty list. Do not force-include weak matches."""
