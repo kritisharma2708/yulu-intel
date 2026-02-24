@@ -27,5 +27,6 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
           PRODUCT_NAME: Yulu
         run: python run.py

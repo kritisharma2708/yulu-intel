@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     SLACK_CHANNEL: str = ""
     SUPABASE_URL: str = ""
     SUPABASE_KEY: str = ""
+    EXA_API_KEY: str = ""
 
     model_config = {"env_file": ".env"}
 
