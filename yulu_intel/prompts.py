@@ -17,7 +17,7 @@ CRITICAL — competitor selection:
 Guidelines:
 - Identify the top 5 key competitors with detailed profiles — ONLY companies that rent, share, or lease vehicles to gig workers and daily renters in India
 - For each competitor, include insights (top features, growth signals, winning segments, marketing angles) — all through the gig worker / daily rental lens
-- For each competitor, include 1-3 recent developments (launches, funding, partnerships, controversies) with type and recency
+- For each competitor, include 1-3 recent developments (launches, funding, partnerships, controversies) with type and recency. Only include news items that are explicitly dated within the last 30 days. If a news item has no clear date or appears older than 30 days, discard it entirely. If no recent news is found for a competitor, return an empty array for recent_developments — do not fill it with older news.
 - For each competitor, assess customer sentiment from gig workers and daily renters (what they love, common complaints, net sentiment as positive/neutral/negative)
 - Provide an honest, balanced SWOT analysis specific to Yulu's position in the gig worker / bike rental segment
 - Suggest actionable strategy recommendations with clear priorities for capturing gig worker and daily rental market share

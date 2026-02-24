@@ -103,11 +103,16 @@ def _format_results(results: List[Dict]) -> str:
     return "\n---\n".join(text_parts) if text_parts else ""
 
 
+def _thirty_days_ago() -> str:
+    return (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%dT00:00:00.000Z")
+
+
 async def _run_queries(
     product_name: str,
     templates: List[str],
     seen_urls: Set[str],
     category: str = None,
+    start_published_date: str = None,
 ) -> Tuple[str, Set[str]]:
     loop = asyncio.get_event_loop()
     all_results: List[Dict] = []
@@ -118,7 +123,13 @@ async def _run_queries(
             result = await asyncio.wait_for(
                 loop.run_in_executor(
                     None,
-                    partial(_run_search, query, settings.max_search_results, category),
+                    partial(
+                        _run_search,
+                        query,
+                        settings.max_search_results,
+                        category,
+                        start_published_date,
+                    ),
                 ),
                 timeout=30,
             )
@@ -137,14 +148,20 @@ async def _run_queries(
 
 async def search_product_initial(product_name: str) -> Tuple[str, Set[str]]:
     seen_urls: Set[str] = set()
-    text, seen_urls = await _run_queries(product_name, INITIAL_QUERIES, seen_urls)
+    cutoff = _thirty_days_ago()
+    text, seen_urls = await _run_queries(
+        product_name, INITIAL_QUERIES, seen_urls, start_published_date=cutoff
+    )
     return text, seen_urls
 
 
 async def search_product_deep(
     product_name: str, seen_urls: Set[str]
 ) -> str:
-    text, _ = await _run_queries(product_name, DEEP_QUERIES, seen_urls)
+    cutoff = _thirty_days_ago()
+    text, _ = await _run_queries(
+        product_name, DEEP_QUERIES, seen_urls, start_published_date=cutoff
+    )
     return text
 
 
@@ -160,7 +177,7 @@ async def search_competitor_news(competitor_names: List[str]) -> Dict[str, str]:
     results_by_competitor: Dict[str, str] = {}
 
     # Only fetch news from the last 30 days
-    cutoff = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%dT00:00:00.000Z")
+    cutoff = _thirty_days_ago()
 
     for name in competitor_names:
         all_items: List[Dict] = []
