@@ -12,6 +12,21 @@ logger = logging.getLogger(__name__)
 
 _exa = None
 
+# Exclude social media and non-news domains from results
+EXCLUDED_DOMAINS = [
+    "linkedin.com",
+    "facebook.com",
+    "twitter.com",
+    "x.com",
+    "instagram.com",
+    "youtube.com",
+    "reddit.com",
+    "pinterest.com",
+    "quora.com",
+    "medium.com",
+    "wikipedia.org",
+]
+
 
 def _get_exa() -> Exa:
     global _exa
@@ -55,6 +70,7 @@ def _run_search(
         }
         if category:
             kwargs["category"] = category
+            kwargs["exclude_domains"] = EXCLUDED_DOMAINS
         if start_published_date:
             kwargs["start_published_date"] = start_published_date
         response = exa.search(**kwargs)
