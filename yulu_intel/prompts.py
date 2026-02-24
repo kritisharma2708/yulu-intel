@@ -50,23 +50,34 @@ Provide a complete competitive analysis including:
 8. A 90-day action plan with 3 monthly entries (month as "Month 1"/"Month 2"/"Month 3", title, description, and 3-5 actions each) — each action must reference a specific competitor move as the reason
 9. gig_worker_pulse: 2-3 items capturing what gig workers are actually saying about these services. Extract specific complaints or praise from scraped review content, Reddit, or news quotes. Each item has "quote" (the specific complaint/praise) and "source_platform" (e.g. "Reddit r/india", "Google Play reviews", "Twitter", "news article quote"). If no direct quotes are found in the search data, infer the most likely sentiment from review summaries."""
 
-NEWS_SYSTEM_PROMPT = """You are a news extraction specialist. You extract only genuinely recent and relevant news items from web search results.
+NEWS_SYSTEM_PROMPT = """You are a news extraction specialist for a competitive intelligence tool focused on Indian micromobility and gig worker services.
 
-Strict rules:
-- ONLY include news items that have an explicit date within the last 30 days (January 2026 or February 2026).
-- If a news item has no clear, specific date mentioned in the search data, DISCARD it entirely. Do not guess dates.
-- ONLY include news that is DIRECTLY about the specified competitor company — the competitor must be a central subject of the article, not merely mentioned in passing.
-- DISCARD articles about unrelated topics (general tech news, Wikipedia, archiving services, social media drama, etc.) even if the competitor name appears somewhere in the text.
-- For each item, extract the source URL directly from the search data. The URL appears in the search results next to each snippet.
+Strict rules — violating ANY of these means the item must be DISCARDED:
+
+RELEVANCE (most important):
+- The article MUST be specifically about the named competitor company's business operations, products, funding, partnerships, pricing, or market moves.
+- The competitor's name must appear in the article headline or first paragraph as a primary subject — not just a passing mention.
+- DISCARD: general industry roundups, listicles, opinion pieces, or articles where the competitor is one of many companies briefly mentioned.
+- DISCARD: articles about unrelated topics (general tech, Wikipedia, archiving, social media, politics, etc.) regardless of keyword matches.
+- DISCARD: product review aggregator pages, SEO spam, or generic comparison sites.
+
+RECENCY:
+- ONLY include articles with a Published date within the last 30 days.
+- If the Published date is missing or older than 30 days, DISCARD.
+- Use the "Published:" field from the search results as the authoritative date. Do not guess dates from article text.
+
+OUTPUT:
+- Return between 0 and 8 items. Returning 0 is perfectly fine and preferred over including weak matches.
+- Extract the source URL directly from the search results.
 - If you cannot find a URL for a news item, set url to null.
-- Return between 0 and 8 items. It is perfectly fine to return 0 items if nothing qualifies.
 - Do not fabricate or hallucinate any news items, dates, or URLs."""
 
 NEWS_USER_PROMPT_TEMPLATE = """Extract recent news items for competitor "{competitor_name}" from the following search results.
 
-Only include items that meet BOTH criteria:
-1. Have an explicit date in the last 30 days
-2. Are directly about "{competitor_name}" as a company — the article must be about their business, products, funding, partnerships, or operations. Discard articles where "{competitor_name}" is only tangentially mentioned or the article is about an unrelated topic.
+For each search result, apply these checks IN ORDER — reject the item as soon as any check fails:
+1. Is "{competitor_name}" the primary subject of this article (named in headline or lead paragraph)? If no → SKIP.
+2. Is the article about their actual business (product, funding, partnership, expansion, pricing, operations)? If it's a generic industry article, listicle, review aggregator, or unrelated topic → SKIP.
+3. Does it have a Published date within the last 30 days? If no date or older → SKIP.
 
 Search results:
 {search_data}
@@ -74,7 +85,9 @@ Search results:
 For each qualifying news item, return:
 - headline: concise headline
 - competitor_name: "{competitor_name}"
-- summary: 1-2 sentence summary
+- summary: 1-2 sentence summary of what {competitor_name} specifically did or announced
 - url: the source URL from the search results (set to null if not found)
-- date: the explicit date found (e.g. "January 15, 2026" or "Feb 3, 2026")
-- type: one of launch/funding/partnership/controversy/growth"""
+- date: the Published date from the search results (e.g. "January 15, 2026" or "Feb 3, 2026")
+- type: one of launch/funding/partnership/controversy/growth
+
+If no items pass all 3 checks, return an empty list. Do not force-include weak matches.

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime, timedelta
 from functools import partial
 from typing import Dict, List, Set, Tuple
 
@@ -38,7 +39,12 @@ DEEP_QUERIES = [
 ]
 
 
-def _run_search(query: str, max_results: int, category: str = None) -> List[Dict]:
+def _run_search(
+    query: str,
+    max_results: int,
+    category: str = None,
+    start_published_date: str = None,
+) -> List[Dict]:
     try:
         exa = _get_exa()
         kwargs = {
@@ -49,6 +55,8 @@ def _run_search(query: str, max_results: int, category: str = None) -> List[Dict
         }
         if category:
             kwargs["category"] = category
+        if start_published_date:
+            kwargs["start_published_date"] = start_published_date
         response = exa.search(**kwargs)
         results = []
         for r in response.results:
@@ -56,6 +64,7 @@ def _run_search(query: str, max_results: int, category: str = None) -> List[Dict
                 "title": r.title or "",
                 "href": r.url or "",
                 "body": r.text or "",
+                "published_date": r.published_date or "",
             })
         return results
     except Exception as e:
@@ -69,7 +78,12 @@ def _format_results(results: List[Dict]) -> str:
         title = item.get("title", "")
         body = item.get("body", "")
         href = item.get("href", "")
-        text_parts.append(f"Title: {title}\nURL: {href}\nContent: {body}\n")
+        published = item.get("published_date", "")
+        header = f"Title: {title}\nURL: {href}"
+        if published:
+            header += f"\nPublished: {published}"
+        header += f"\nContent: {body}\n"
+        text_parts.append(header)
     return "\n---\n".join(text_parts) if text_parts else ""
 
 
@@ -119,15 +133,18 @@ async def search_product_deep(
 
 
 NEWS_QUERIES = [
-    "{competitor} India micromobility EV 2026",
-    "{competitor} funding launch partnership India 2026",
+    "{competitor} electric scooter bike rental gig worker India",
+    "{competitor} funding launch partnership expansion India",
 ]
 
 
 async def search_competitor_news(competitor_names: List[str]) -> Dict[str, str]:
-    """Run news-specific queries for each competitor using Exa news category."""
+    """Run news-specific queries for each competitor using Exa news category with date filter."""
     loop = asyncio.get_event_loop()
     results_by_competitor: Dict[str, str] = {}
+
+    # Only fetch news from the last 30 days
+    cutoff = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%dT00:00:00.000Z")
 
     for name in competitor_names:
         all_items: List[Dict] = []
@@ -138,7 +155,13 @@ async def search_competitor_news(competitor_names: List[str]) -> Dict[str, str]:
                 result = await asyncio.wait_for(
                     loop.run_in_executor(
                         None,
-                        partial(_run_search, query, settings.max_search_results, "news"),
+                        partial(
+                            _run_search,
+                            query,
+                            settings.max_search_results,
+                            "news",
+                            cutoff,
+                        ),
                     ),
                     timeout=30,
                 )
