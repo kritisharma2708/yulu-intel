@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from supabase import create_client
 
@@ -33,7 +33,10 @@ def is_first_run() -> bool:
     return result.count == 0
 
 
-def detect_and_store(analysis: CompetitiveAnalysis) -> Tuple[List[str], List[str]]:
+def detect_and_store(
+    analysis: CompetitiveAnalysis,
+    report_html: Optional[str] = None,
+) -> Tuple[List[str], List[str]]:
     """Returns (new_competitors, returning_competitors)."""
     today = date.today().isoformat()
     sb = _get_client()
@@ -63,13 +66,16 @@ def detect_and_store(analysis: CompetitiveAnalysis) -> Tuple[List[str], List[str
             returning_competitors.append(comp.name)
 
     competitor_names = [c.name for c in analysis.competitors]
-    sb.table("analysis_runs").insert({
+    row_data = {
         "run_date": today,
         "product_name": analysis.product_name,
         "analysis_json": analysis.model_dump_json(),
         "competitor_names": json.dumps(competitor_names),
         "new_competitors": json.dumps(new_competitors),
-    }).execute()
+    }
+    if report_html is not None:
+        row_data["report_html"] = report_html
+    sb.table("analysis_runs").insert(row_data).execute()
 
     return new_competitors, returning_competitors
 

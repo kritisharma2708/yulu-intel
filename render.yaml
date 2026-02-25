@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: competeiq-reports
+    runtime: node
+    rootDir: reports-server
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false

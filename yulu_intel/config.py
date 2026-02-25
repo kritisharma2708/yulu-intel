@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = ""
     SUPABASE_KEY: str = ""
     EXA_API_KEY: str = ""
+    REPORT_BASE_URL: str = ""
 
     model_config = {"env_file": ".env"}
 

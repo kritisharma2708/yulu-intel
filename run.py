@@ -1,12 +1,15 @@
 import asyncio
 import logging
+import os
 import sys
+from datetime import date
 
 from yulu_intel.config import settings
 from yulu_intel.db import detect_and_store, init_db, is_first_run
 from yulu_intel.search import search_product_initial, search_product_deep, search_competitor_news
 from yulu_intel.analyzer import analyze_product, extract_news
-from yulu_intel.formatter import format_messages
+from yulu_intel.formatter import format_summary
+from yulu_intel.html_report import generate_html_report
 from yulu_intel.slack import send_messages
 
 logging.basicConfig(
@@ -67,13 +70,40 @@ async def main() -> None:
     logger.info("  New: %s", new_competitors or "(none)")
     logger.info("  Returning: %s", returning_competitors or "(none)")
 
-    # 6. Format Slack messages
-    logger.info("Phase 6: Formatting Slack messages...")
-    payloads = format_messages(analysis, new_competitors, returning_competitors, first_run)
-    logger.info("  Built %d messages", len(payloads))
+    # 6. Generate HTML report
+    logger.info("Phase 6: Generating HTML report...")
+    report_html = generate_html_report(analysis, new_competitors, returning_competitors, first_run)
 
-    # 7. Send to Slack
-    logger.info("Phase 7: Sending to Slack...")
+    # Write to local file
+    reports_dir = os.path.join(os.path.dirname(__file__), "reports")
+    os.makedirs(reports_dir, exist_ok=True)
+    today_str = date.today().isoformat()
+    report_path = os.path.join(reports_dir, f"{today_str}.html")
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(report_html)
+    logger.info("  Report saved to %s", report_path)
+
+    # Store in Supabase (update the row we just inserted)
+    try:
+        from supabase import create_client
+        sb = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+        sb.table("analysis_runs").update({
+            "report_html": report_html,
+        }).eq("run_date", today_str).eq("product_name", product).execute()
+        logger.info("  Report HTML stored in Supabase")
+    except Exception as exc:
+        logger.warning("  Could not store report HTML in Supabase: %s", exc)
+
+    # 7. Build short Slack summary
+    logger.info("Phase 7: Formatting Slack summary...")
+    report_url = None
+    if settings.REPORT_BASE_URL:
+        report_url = f"{settings.REPORT_BASE_URL.rstrip('/')}/report/{today_str}"
+    payloads = format_summary(analysis, report_url)
+    logger.info("  Built %d message(s)", len(payloads))
+
+    # 8. Send to Slack
+    logger.info("Phase 8: Sending to Slack...")
     send_messages(payloads)
     logger.info("=== Done ===")
 

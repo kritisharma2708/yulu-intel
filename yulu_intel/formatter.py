@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from yulu_intel.models import CompetitiveAnalysis
 
@@ -19,6 +19,54 @@ def _divider() -> Dict:
 def _truncate(text: str, limit: int = 2900) -> str:
     """Slack blocks have a 3000 char limit per text field."""
     return text[:limit] + "..." if len(text) > limit else text
+
+
+def _clip(text: str, limit: int = 100) -> str:
+    """Truncate to limit chars for punchy summary lines."""
+    return text[:limit - 1] + "\u2026" if len(text) > limit else text
+
+
+def format_summary(
+    analysis: CompetitiveAnalysis,
+    report_url: Optional[str] = None,
+) -> List[Dict]:
+    """Build 1 short Slack summary message (~10 lines) linking to the full HTML report."""
+    today = date.today().strftime("%b %d, %Y")
+
+    threat = _clip(analysis.biggest_threats[0]) if analysis.biggest_threats else "No major threats today"
+    insight = _clip(analysis.key_insights[0]) if analysis.key_insights else "No new insights"
+    opportunity = _clip(analysis.urgent_opportunities[0]) if analysis.urgent_opportunities else "No urgent opportunities"
+
+    watch_out = threat
+    opp_line = opportunity
+
+    # First action from Month 1 of 90-day plan
+    action = "Review competitive report"
+    if analysis.action_plan_90day:
+        m1 = analysis.action_plan_90day[0]
+        if m1.actions:
+            action = _clip(m1.actions[0])
+
+    report_line = ""
+    if report_url:
+        report_line = f"\n:bar_chart: <{report_url}|View Full Report \u2192>"
+
+    text = (
+        f":mag: *CompeteIQ Daily \u2014 {today}*\n"
+        f"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"
+        f":round_pushpin: *Market:* Micromobility | Gig Worker Segment\n\n"
+        f":zap: *Top 3 Moves Today*\n"
+        f"\u2022 :red_circle: {threat}\n"
+        f"\u2022 :large_yellow_circle: {insight}\n"
+        f"\u2022 :large_green_circle: {opportunity}\n\n"
+        f":eyes: *Watch Out:* {watch_out}\n"
+        f":bulb: *Opportunity:* {opp_line}\n"
+        f":white_check_mark: *Action Today:* {action}"
+        f"{report_line}\n"
+        f"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501"
+    )
+
+    return [{"blocks": [_section(text)]}]
 
 
 def format_messages(
