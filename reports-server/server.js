@@ -14,6 +14,9 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
   supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 }
 
+// --- Root redirect ---
+app.get("/", (_req, res) => res.redirect("/reports"));
+
 // --- Health check ---
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", supabase: !!supabase, reportsDir: REPORTS_DIR });
