@@ -21,7 +21,7 @@ def _truncate(text: str, limit: int = 2900) -> str:
     return text[:limit] + "..." if len(text) > limit else text
 
 
-def _clip(text: str, limit: int = 100) -> str:
+def _clip(text: str, limit: int = 200) -> str:
     """Truncate to limit chars for punchy summary lines."""
     return text[:limit - 1] + "\u2026" if len(text) > limit else text
 
@@ -47,10 +47,6 @@ def format_summary(
         if m1.actions:
             action = _clip(m1.actions[0])
 
-    report_line = ""
-    if report_url:
-        report_line = f"\n:bar_chart: <{report_url}|View Full Report \u2192>"
-
     text = (
         f":mag: *CompeteIQ Daily \u2014 {today}*\n"
         f"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"
@@ -61,12 +57,18 @@ def format_summary(
         f"\u2022 :large_green_circle: {opportunity}\n\n"
         f":eyes: *Watch Out:* {watch_out}\n"
         f":bulb: *Opportunity:* {opp_line}\n"
-        f":white_check_mark: *Action Today:* {action}"
-        f"{report_line}\n"
+        f":white_check_mark: *Action Today:* {action}\n"
         f"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501"
     )
 
-    return [{"blocks": [_section(text)]}]
+    blocks = [_section(text)]
+
+    if report_url:
+        blocks.append(
+            _section(f":bar_chart: *<{report_url}|View Full Report \u2192>*")
+        )
+
+    return [{"blocks": blocks}]
 
 
 def format_messages(
