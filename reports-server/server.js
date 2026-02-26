@@ -82,14 +82,15 @@ app.get("/report/:date", async (req, res) => {
         .from("analysis_runs")
         .select("report_html")
         .eq("run_date", dateStr)
-        .limit(1)
-        .single();
+        .not("report_html", "is", null)
+        .order("run_date", { ascending: false })
+        .limit(1);
 
-      if (data && data.report_html) {
+      if (data && data.length > 0 && data[0].report_html) {
         // Cache locally
         fs.mkdirSync(REPORTS_DIR, { recursive: true });
-        fs.writeFileSync(localPath, data.report_html, "utf-8");
-        return res.type("html").send(data.report_html);
+        fs.writeFileSync(localPath, data[0].report_html, "utf-8");
+        return res.type("html").send(data[0].report_html);
       }
     } catch {
       // ignore
