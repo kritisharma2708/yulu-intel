@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
+
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 FOCUS_PERSONA = {
@@ -34,7 +38,7 @@ class Settings(BaseSettings):
     EXA_API_KEY: str = ""
     REPORT_BASE_URL: str = ""
 
-    model_config = {"env_file": ".env"}
+    model_config = {"env_file": str(_ENV_FILE)}
 
 
 settings = Settings()
