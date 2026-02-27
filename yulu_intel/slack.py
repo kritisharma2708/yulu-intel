@@ -10,9 +10,16 @@ logger = logging.getLogger(__name__)
 
 
 def _post_webhook(payload: Dict) -> None:
+    # Slack webhooks require a top-level "text" fallback
+    body = dict(payload)
+    if "text" not in body:
+        # Extract plain text from first block as fallback
+        blocks = body.get("blocks", [])
+        if blocks:
+            body["text"] = blocks[0].get("text", {}).get("text", "CompeteIQ Update")
     resp = requests.post(
         settings.SLACK_WEBHOOK_URL,
-        json=payload,
+        json=body,
         timeout=15,
     )
     resp.raise_for_status()

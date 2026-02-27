@@ -47,6 +47,10 @@ def format_summary(
         if m1.actions:
             action = _clip(m1.actions[0])
 
+    report_line = ""
+    if report_url:
+        report_line = f"\n\n:bar_chart: *<{report_url}|View Full Report \u2192>*"
+
     text = (
         f":mag: *CompeteIQ Daily \u2014 {today}*\n"
         f"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n"
@@ -59,16 +63,10 @@ def format_summary(
         f":bulb: *Opportunity:* {opp_line}\n"
         f":white_check_mark: *Action Today:* {action}\n"
         f"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501"
+        f"{report_line}"
     )
 
-    blocks = [_section(text)]
-
-    if report_url:
-        blocks.append(
-            _section(f":bar_chart: *<{report_url}|View Full Report \u2192>*")
-        )
-
-    return [{"blocks": blocks}]
+    return [{"blocks": [_section(text)]}]
 
 
 def format_messages(
