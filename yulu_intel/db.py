@@ -80,6 +80,21 @@ def detect_and_store(
     return new_competitors, returning_competitors
 
 
+def store_report_html(run_date: str, report_html: str) -> None:
+    """Update the most recent analysis_runs row for the given date with report HTML."""
+    sb = _get_client()
+    # Find the row we just inserted (most recent for this date)
+    result = sb.table("analysis_runs").select("id").eq(
+        "run_date", run_date
+    ).order("id", desc=True).limit(1).execute()
+
+    if result.data:
+        row_id = result.data[0]["id"]
+        sb.table("analysis_runs").update({
+            "report_html": report_html,
+        }).eq("id", row_id).execute()
+
+
 def get_all_known_competitors() -> List[dict]:
     sb = _get_client()
     result = sb.table("competitors").select("name, normalized_name, first_seen_date, last_seen_date, times_seen").order("first_seen_date").execute()

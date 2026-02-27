@@ -5,7 +5,7 @@ import sys
 from datetime import date
 
 from yulu_intel.config import settings
-from yulu_intel.db import detect_and_store, init_db, is_first_run
+from yulu_intel.db import detect_and_store, init_db, is_first_run, store_report_html
 from yulu_intel.search import search_product_initial, search_product_deep, search_competitor_news
 from yulu_intel.analyzer import analyze_product, extract_news
 from yulu_intel.formatter import format_summary
@@ -64,7 +64,7 @@ async def main() -> None:
     analysis.news_digest = all_news
     logger.info("  Total news items: %d", len(all_news))
 
-    # 5. Detect new competitors
+    # 5. Detect new competitors & store analysis in Supabase
     logger.info("Phase 5: Competitor tracking...")
     new_competitors, returning_competitors = detect_and_store(analysis)
     logger.info("  New: %s", new_competitors or "(none)")
@@ -83,16 +83,9 @@ async def main() -> None:
         f.write(report_html)
     logger.info("  Report saved to %s", report_path)
 
-    # Store in Supabase (update the row we just inserted)
-    try:
-        from supabase import create_client
-        sb = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-        sb.table("analysis_runs").update({
-            "report_html": report_html,
-        }).eq("run_date", today_str).eq("product_name", product).execute()
-        logger.info("  Report HTML stored in Supabase")
-    except Exception as exc:
-        logger.warning("  Could not store report HTML in Supabase: %s", exc)
+    # Store report HTML in Supabase
+    store_report_html(today_str, report_html)
+    logger.info("  Report HTML stored in Supabase")
 
     # 7. Build short Slack summary
     logger.info("Phase 7: Formatting Slack summary...")
