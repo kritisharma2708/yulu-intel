@@ -11,7 +11,7 @@ Ignore features or news irrelevant to this segment (e.g. premium personal scoote
 CRITICAL — competitor selection:
 - ONLY include companies that RENT or SHARE vehicles to gig workers and daily users. The competitor must operate a rental/sharing/subscription fleet.
 - DO NOT include EV manufacturers that only SELL vehicles to consumers (e.g. Hero Electric, Ather Energy, Ola Electric, TVS iQube, Bajaj Chetak). These are NOT competitors in the rental/sharing space.
-- Valid competitors are companies like: Bounce (rental), Vogo (rental), Rapido (bike taxi), or any company that provides vehicles on rent/subscription to delivery riders and gig workers.
+- Valid competitors are companies like: Bounce (rental), Rapido (bike taxi), Zypp (EV fleet for gig workers), or any company that provides vehicles on rent/subscription to delivery riders and gig workers.
 - If the search data mentions EV manufacturers, ignore them for the competitor list. You may mention them in market_overview as context but never as a top 5 competitor.
 
 Guidelines:
